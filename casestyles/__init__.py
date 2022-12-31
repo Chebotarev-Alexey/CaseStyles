@@ -1,4 +1,4 @@
-from functools import cache
+from typing import Callable
 
 __all__ = ["Word", "Name"]
 
@@ -65,9 +65,11 @@ class Name:
             super().__init__("double underscore and underscores at the and at start in name are not allowed")
 
     _words: list[Word]
+    _cache: dict[Callable[[], str], str]
 
     def __init__(self, words: list[Word]):
         self._words = words
+        self._cache = {}
 
     @classmethod
     def _create_name(cls, words: list[Word]):
@@ -94,7 +96,9 @@ class Name:
     @classmethod
     def from_snake_case(cls, value: str) -> "Name":
         try:
-            return cls.from_words_str_list(value.split("_"))
+            result = cls.from_words_str_list(value.split("_"))
+            result._cache[result._to_snake_case] = value
+            return result
 
         except cls.NotLowerWordError:
             raise cls.NotLowerWordInSnakeCaseError
@@ -113,27 +117,43 @@ class Name:
             word_str += symbol.lower()
         words_str.append(word_str)
         try:
-            return cls.from_words_str_list(words_str)
+            result = cls.from_words_str_list(words_str)
+            result._cache[result._to_camel_case] = value
+            return result
         
         except (cls.EmptyWordError, cls.NotLowerWordError):
             raise cls.InnerError
     
     @classmethod
     def from_pascal_case(cls, value: str) -> "Name":
-        return cls.from_camel_case(value[:1].lower()+value[1:])
+        result = cls.from_camel_case(value[:1].lower()+value[1:])
+        result._cache[result._to_pascal_case] = value
+        return result
 
-    @property
-    @cache
-    def snake_case(self) -> str:
+    def _to_snake_case(self):
         return "_".join(map(str, self._words))
 
-    @property
-    @cache
-    def camel_case(self) -> str:
-        camel_case = self.pascal_case
-        return camel_case[:1].lower() + camel_case[1:]
+    def _to_camel_case(self):
+        pascal_case = self.pascal_case
+        return pascal_case[:1].lower() + pascal_case[1:]
+
+    def _to_pascal_case(self) -> str:
+        return "".join(map(lambda word: str(word).capitalize(), self._words))
+
+    def _cached(self, getter: Callable[[], str]):
+        if not (result := self._cache.get(getter)):
+            result = getter()
+            self._cache[getter] = result
+        return result
 
     @property
-    @cache
+    def snake_case(self) -> str:
+        return self._cached(self._to_snake_case)
+
+    @property
+    def camel_case(self) -> str:
+        return self._cached(self._to_camel_case)
+
+    @property
     def pascal_case(self) -> str:
-        return "".join(map(lambda word: str(word).capitalize(), self._words))
+        return self._cached(self._to_pascal_case)

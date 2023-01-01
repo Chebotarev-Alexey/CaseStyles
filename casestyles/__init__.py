@@ -157,3 +157,6 @@ class Name:
     @property
     def pascal_case(self) -> str:
         return self._cached(self._to_pascal_case)
+
+    def __hash__(self):
+        return hash(self.snake_case)

@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setuptools.setup(
 	name="casestyles",
-	version="1.2",
+	version="1.2.1",
 	author="Alexey-Chebotarev",
 	description="A package for converting case styles to each other",
 	long_description=long_description,

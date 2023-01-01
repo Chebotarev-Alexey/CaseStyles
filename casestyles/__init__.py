@@ -160,3 +160,8 @@ class Name:
 
     def __hash__(self):
         return hash(self.snake_case)
+
+    def __eq__(self, other: object):
+        if not isinstance(other, Name):
+            return False
+        return self.camel_case == other.camel_case

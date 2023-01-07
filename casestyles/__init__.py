@@ -158,6 +158,10 @@ class Name:
     def pascal_case(self) -> str:
         return self._cached(self._to_pascal_case)
 
+    @property
+    def words_str_list(self) -> list[str]:
+        return list(map(lambda word: word.get(), self._words))
+
     def __hash__(self):
         return hash(self.snake_case)
 

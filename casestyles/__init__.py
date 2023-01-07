@@ -162,6 +162,10 @@ class Name:
     def words_str_list(self) -> list[str]:
         return list(map(lambda word: word.get(), self._words))
 
+    @property
+    def words_list(self) -> list[Word]:
+        return self._words
+
     def __hash__(self):
         return hash(self.snake_case)
 
